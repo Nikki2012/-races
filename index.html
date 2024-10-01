@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Racing Game</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #000;
+    }
+    canvas {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="racingGame" width="400" height="600"></canvas>
+  <script>
+    const canvas = document.getElementById('racingGame');
+    const ctx = canvas.getContext('2d');
+
+    const roadWidth = 200;
+    const roadX = canvas.width / 2 - roadWidth / 2;
+    const playerCarWidth = 40;
+    const playerCarHeight = 80;
+    const carColor = 'blue';
+
+    // Позиція машини гравця
+    let playerCar = {
+      x: roadX + roadWidth / 2 - playerCarWidth / 2,
+      y: canvas.height - playerCarHeight - 10,
+      speed: 5
+    };
+
+    // Список машин-суперників
+    let enemyCars = [];
+    const enemyCarWidth = 40;
+    const enemyCarHeight = 80;
+    let enemySpeed = 3;
+
+    // Створення випадкової машини-суперника
+    function createEnemyCar() {
+      const enemyCar = {
+        x: roadX + Math.random() * (roadWidth - enemyCarWidth),
+        y: -enemyCarHeight,
+      };
+      enemyCars.push(enemyCar);
+    }
+
+    // Малюємо машину
+    function drawCar(x, y, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, playerCarWidth, playerCarHeight);
+    }
+
+    // Оновлюємо позиції машин
+    function updateGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Малюємо дорогу
+      ctx.fillStyle = 'gray';
+      ctx.fillRect(roadX, 0, roadWidth, canvas.height);
+
+      // Малюємо смуги на дорозі
+      ctx.strokeStyle = 'white';
+      ctx.setLineDash([20, 20]);
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(roadX + roadWidth / 2, 0);
+      ctx.lineTo(roadX + roadWidth / 2, canvas.height);
+      ctx.stroke();
+
+      // Малюємо машину гравця
+      drawCar(playerCar.x, playerCar.y, carColor);
+
+      // Малюємо та переміщуємо машини-суперників
+      enemyCars.forEach((enemyCar, index) => {
+        enemyCar.y += enemySpeed;
+        drawCar(enemyCar.x, enemyCar.y, 'red');
+
+        // Перевірка на зіткнення з машиною гравця
+        if (
+          enemyCar.y + enemyCarHeight > playerCar.y &&
+          enemyCar.y < playerCar.y + playerCarHeight &&
+          enemyCar.x < playerCar.x + playerCarWidth &&
+          enemyCar.x + enemyCarWidth > playerCar.x
+        ) {
+          alert('Game Over!');
+          document.location.reload();
+        }
+
+        // Видаляємо машини-суперників, які пішли за межі екрану
+        if (enemyCar.y > canvas.height) {
+          enemyCars.splice(index, 1);
+        }
+      });
+
+      // Створюємо нові машини-суперники через кожен 100 кадрів
+      if (Math.random() < 0.02) {
+        createEnemyCar();
+      }
+
+      requestAnimationFrame(updateGame);
+    }
+
+    // Обробка клавіш
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft' && playerCar.x > roadX) {
+        playerCar.x -= playerCar.speed;
+      } else if (event.key === 'ArrowRight' && playerCar.x < roadX + roadWidth - playerCarWidth) {
+        playerCar.x += playerCar.speed;
+      }
+    });
+
+    // Починаємо гру
+    updateGame();
+  </script>
+</body>
+</html>
